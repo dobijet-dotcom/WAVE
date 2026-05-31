@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>설명문 수업 — 문단 구성·설명 방법</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gaegu:wght@400;700&display=swap');
+
+  :root{
+    --ink:#23201b;
+    --paper:#f4ecd8;
+    --paper2:#eaddc0;
+    --accent:#c0392b;
+    --accent2:#1f6f54;
+    --gold:#b8860b;
+    --line:#bfa86a;
+    --shadow:rgba(60,45,20,.22);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Gowun Batang',serif;
+    background:
+      radial-gradient(circle at 20% 10%, #fbf5e4 0%, transparent 55%),
+      radial-gradient(circle at 80% 90%, #efe1c2 0%, transparent 50%),
+      var(--paper);
+    color:var(--ink);
+    min-height:100vh;
+    padding:18px 14px 60px;
+    background-attachment:fixed;
+  }
+  .wrap{max-width:860px;margin:0 auto}
+
+  header.top{
+    text-align:center;margin-bottom:14px;position:relative;
+  }
+  header.top h1{
+    font-family:'Gaegu',cursive;font-size:2.1rem;color:var(--accent);
+    letter-spacing:-1px;text-shadow:2px 2px 0 #fff;
+  }
+  header.top .sub{font-size:.92rem;color:#6b5d44;margin-top:2px}
+
+  /* stepper */
+  .stepper{display:flex;justify-content:center;gap:6px;margin:14px 0 18px;flex-wrap:wrap}
+  .stepper .s{
+    font-family:'Gaegu',cursive;font-size:.9rem;padding:6px 14px;border-radius:999px;
+    background:var(--paper2);border:2px solid var(--line);color:#7a6a4a;cursor:pointer;
+    transition:.2s;
+  }
+  .stepper .s.active{background:var(--accent);color:#fff;border-color:var(--accent);transform:translateY(-2px)}
+  .stepper .s.done{background:var(--accent2);color:#fff;border-color:var(--accent2)}
+
+  /* timer */
+  .timerbar{
+    display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;
+    background:rgba(255,255,255,.55);border:2px dashed var(--line);border-radius:14px;
+    padding:8px 12px;margin-bottom:16px;
+  }
+  .timerbar .clock{font-family:'Gaegu',cursive;font-size:1.8rem;color:var(--accent2);min-width:92px;text-align:center}
+  .timerbar button,.chip{
+    font-family:'Gaegu',cursive;border:2px solid var(--line);background:var(--paper);
+    border-radius:10px;padding:5px 12px;cursor:pointer;font-size:.9rem;color:var(--ink);transition:.15s;
+  }
+  .timerbar button:hover,.chip:hover{background:var(--gold);color:#fff}
+  .chip.on{background:var(--accent2);color:#fff;border-color:var(--accent2)}
+
+  .card{
+    background:rgba(255,255,255,.66);border:2px solid var(--line);border-radius:18px;
+    padding:20px;box-shadow:0 8px 22px var(--shadow);margin-bottom:18px;
+    backdrop-filter:blur(2px);
+  }
+  .card h2{font-family:'Gaegu',cursive;font-size:1.5rem;color:var(--accent2);margin-bottom:4px}
+  .card .hint{font-size:.9rem;color:#7a6a4a;margin-bottom:14px;line-height:1.5}
+  .panel{display:none}
+  .panel.active{display:block;animation:fade .35s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  /* rule banner */
+  .rule{
+    font-family:'Gaegu',cursive;text-align:center;background:#fff7e0;border:2px solid var(--gold);
+    border-radius:12px;padding:8px;margin-bottom:14px;color:#8a6d0b;font-size:1.02rem;
+  }
+
+  /* ===== STEP 1 drag ===== */
+  .s1grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:680px){.s1grid{grid-template-columns:1fr}}
+  .pool,.slots{display:flex;flex-direction:column;gap:10px}
+  .frag{
+    background:var(--paper2);border:2px solid var(--line);border-radius:12px;padding:11px;
+    cursor:pointer;font-size:.9rem;line-height:1.5;box-shadow:1px 2px 4px var(--shadow);transition:.15s;
+  }
+  .frag:hover{border-color:var(--gold)}
+  .frag.sel{border-color:var(--accent);background:#fdeee9;box-shadow:0 0 0 3px rgba(192,57,43,.25)}
+  .slotrow{display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:stretch;margin-bottom:10px}
+  .slotlabel{
+    font-family:'Gaegu',cursive;font-size:1rem;display:flex;align-items:center;justify-content:center;
+    background:var(--accent2);color:#fff;border-radius:12px;text-align:center;
+  }
+  .dropzone{
+    min-height:70px;border:2px dashed var(--line);border-radius:12px;padding:6px;
+    background:rgba(255,255,255,.4);transition:.15s;display:flex;align-items:center;
+  }
+  .dropzone.over{background:#fff7e0;border-color:var(--gold)}
+  .dropzone.fixed{border-style:solid;border-color:var(--gold);background:rgba(184,134,11,.08)}
+  .frag.fixedfrag{background:rgba(184,134,11,.12);border-color:var(--gold);cursor:default;opacity:.85}
+  .cue{background:#e3eef0;border-bottom:2px dotted var(--accent2);border-radius:4px;padding:0 3px;cursor:pointer;font-weight:700;transition:.15s}
+  .cue:hover{background:var(--gold);color:#fff}
+  .cue.cuedone{background:var(--accent2);color:#fff;border-color:var(--accent2)}
+  .cuestatus{font-family:'Gaegu',cursive;text-align:center;background:#eef6f1;border:2px solid var(--accent2);border-radius:12px;padding:8px;margin:10px 0;color:var(--accent2);font-size:1rem}
+  .cueblank{display:inline-block;min-width:64px;padding:0 8px;margin:0 2px;border-bottom:2px dashed var(--accent);border-radius:4px;text-align:center;color:#b96;background:#fff7e0;transition:.15s;vertical-align:baseline;cursor:pointer}
+  .cueblank:hover{background:var(--gold);color:#fff}
+  .cueblank.sel{background:var(--accent);color:#fff;border-bottom-color:var(--accent);box-shadow:0 0 0 3px rgba(192,57,43,.25)}
+  .cueblank.filled{background:var(--accent2);color:#fff;border-bottom-color:var(--accent2);font-weight:700}
+  .cueblank.trap{background:var(--accent);border-bottom-color:var(--accent);animation:trapblink .6s ease 2}
+  @keyframes trapblink{50%{box-shadow:0 0 0 4px rgba(192,57,43,.45)}}
+  .cuepool-wrap{margin:6px 0 10px}
+  .cuepool{display:flex;flex-wrap:wrap;gap:8px}
+  .cuechip{font-family:'Gaegu',cursive;font-size:1.05rem;padding:8px 16px;border-radius:999px;border:2px solid var(--gold);background:#fff;cursor:pointer;box-shadow:1px 2px 4px var(--shadow);transition:.15s}
+  .cuechip:hover{background:var(--gold);color:#fff}
+  .cuechip.used{opacity:.3;pointer-events:none;text-decoration:line-through}
+  .cuechip.used{opacity:.3;pointer-events:none;text-decoration:line-through}
+  .rolegrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+  @media(max-width:680px){.rolegrid{grid-template-columns:1fr}}
+  .rolegrid .rr{display:flex;align-items:center;gap:8px;font-size:.88rem}
+  .rolegrid .rr b{font-family:'Gaegu',cursive;color:var(--accent2);min-width:54px}
+  .rolegrid select{flex:1;font-family:'Gowun Batang',serif;border:2px solid var(--line);border-radius:8px;padding:6px;background:rgba(255,255,255,.7)}
+  .reasonbox{margin-top:14px}
+  .reasonbox label{font-family:'Gaegu',cursive;font-size:1rem;color:var(--accent)}
+  textarea,input.ti{
+    width:100%;font-family:'Gowun Batang',serif;font-size:.95rem;border:2px solid var(--line);
+    border-radius:10px;padding:10px;margin-top:6px;background:rgba(255,255,255,.7);resize:vertical;
+  }
+  .btn{
+    font-family:'Gaegu',cursive;font-size:1.05rem;border:none;border-radius:12px;padding:10px 22px;
+    cursor:pointer;transition:.15s;box-shadow:0 3px 0 rgba(0,0,0,.15);
+  }
+  .btn.primary{background:var(--accent);color:#fff}
+  .btn.green{background:var(--accent2);color:#fff}
+  .btn.gold{background:var(--gold);color:#fff}
+  .btn:hover{transform:translateY(-2px)}
+  .btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+  .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center}
+  .status{font-size:.9rem;color:#7a6a4a}
+  .ok{color:var(--accent2);font-weight:700}
+  .no{color:var(--accent);font-weight:700}
+
+  /* ===== STEP 2 markers ===== */
+  .readtext{font-size:1.05rem;line-height:2;background:rgba(255,255,255,.5);padding:14px;border-radius:12px;border:1px solid var(--line)}
+  .marker{
+    background:#fff2b8;border-bottom:2px solid var(--gold);border-radius:4px;padding:1px 4px;cursor:pointer;
+    transition:.15s;font-weight:700;
+  }
+  .marker:hover{background:var(--gold);color:#fff}
+  .marker.solved{background:var(--accent2);color:#fff;border-color:var(--accent2);cursor:default}
+  .counter{display:flex;gap:18px;justify-content:center;margin:14px 0}
+  .counter .b{text-align:center}
+  .counter .n{font-family:'Gaegu',cursive;font-size:2rem;color:var(--accent)}
+  .counter .l{font-size:.8rem;color:#7a6a4a}
+
+  /* ===== AI verify box ===== */
+  .aibox{
+    border:2px solid var(--accent);border-radius:14px;padding:14px;margin-top:14px;
+    background:linear-gradient(135deg,#fff,#fdeee9);
+  }
+  .aibox .ait{font-family:'Gaegu',cursive;color:var(--accent);font-size:1.15rem;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+  .airesult{font-size:.98rem;line-height:1.6;min-height:24px;white-space:pre-wrap}
+  .verifyrow{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+  .spinner{display:inline-block;width:16px;height:16px;border:3px solid var(--paper2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* modal */
+  .modal{position:fixed;inset:0;background:rgba(35,25,10,.55);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+  .modal.show{display:flex}
+  .modal .inner{background:var(--paper);border:3px solid var(--gold);border-radius:18px;padding:22px;max-width:420px;width:100%;text-align:center}
+  .modal h3{font-family:'Gaegu',cursive;color:var(--accent);font-size:1.4rem;margin-bottom:10px}
+  .choices{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+  .choices button{font-family:'Gaegu',cursive;padding:12px;border-radius:10px;border:2px solid var(--line);background:#fff;cursor:pointer;font-size:1rem;transition:.15s}
+  .choices button:hover{background:var(--accent2);color:#fff;border-color:var(--accent2)}
+
+  footer{text-align:center;font-size:.8rem;color:#9a8a6a;margin-top:24px;font-family:'Gaegu',cursive}
+  .tag{display:inline-block;background:var(--paper2);border:1px solid var(--line);border-radius:8px;padding:2px 8px;font-size:.78rem;margin:2px}
+  .logcard{margin-top:14px;background:rgba(255,255,255,.55);border:2px dashed var(--line);border-radius:14px;padding:14px;font-size:.92rem;color:#5e5038}
+  .logteam{font-family:'Gaegu',cursive;font-size:1.2rem;color:var(--accent);margin-bottom:8px}
+  .logitem{padding:8px 0;border-top:1px solid rgba(191,168,106,.4)}
+  .logstep{font-family:'Gaegu',cursive;color:var(--accent2);margin-right:8px;font-size:.95rem}
+  .logtext{margin-top:4px;line-height:1.5;padding-left:6px;border-left:3px solid var(--line)}
+  .finblock{border:2px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px;background:rgba(255,255,255,.5)}
+  .fintitle{font-family:'Gaegu',cursive;font-size:1.2rem;margin-bottom:6px}
+  .qlabel{display:block;font-size:.9rem;color:#5e5038;margin-top:10px;font-weight:700}
+  .reasonpick{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+  .reasonopt{font-family:'Gowun Batang',serif;font-size:.92rem;text-align:left;padding:11px 14px;border-radius:12px;border:2px solid var(--line);background:rgba(255,255,255,.7);cursor:pointer;transition:.15s;line-height:1.4}
+  .reasonopt:hover{border-color:var(--gold);background:#fff7e0}
+  .reasonopt.sel{background:var(--accent2);color:#fff;border-color:var(--accent2)}
+  .presteps{margin:8px 0 12px 20px;line-height:1.9;font-size:.95rem}
+  .presteps li{margin-bottom:2px}
+  .topicpick{margin-bottom:12px}
+  .topiclabel{font-family:'Gaegu',cursive;font-size:1.1rem;color:var(--accent2);margin-bottom:8px}
+  .topicgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  @media(max-width:680px){.topicgrid{grid-template-columns:1fr}}
+  .topicbtn{font-family:'Gowun Batang',serif;font-size:.95rem;padding:12px;border-radius:12px;border:2px solid var(--line);background:rgba(255,255,255,.7);cursor:pointer;transition:.15s;text-align:left}
+  .topicbtn:hover{background:#fff7e0;border-color:var(--gold)}
+  .topicbtn.sel{background:var(--accent2);color:#fff;border-color:var(--accent2)}
+  .rolebox{border:2px dashed var(--accent2);border-radius:14px;padding:14px;margin-bottom:12px;background:rgba(255,255,255,.5)}
+  .rolegrid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0}
+  @media(max-width:680px){.rolegrid2{grid-template-columns:1fr}}
+  .rr2{display:flex;flex-direction:column;gap:4px}
+  .rr2 label{font-size:.85rem;color:#5e5038;font-weight:700}
+  .rr2 .ti{margin-top:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>✍️ 설명문 탐험대</h1>
+    <div class="sub">1단계 글의 문단 구성 · 2단계 표지어 찾기 · 3단계 문단 쓰기 · 4단계 패들렛에 올리기</div>
+  </header>
+
+  <div class="stepper">
+    <div class="s active" data-go="1">① 문단 구성</div>
+    <div class="s" data-go="2">② 표지어 찾기</div>
+    <div class="s" data-go="3">③ 문단 쓰기</div>
+    <div class="s" data-go="4">④ 마무리</div>
+  </div>
+
+  <div class="timerbar">
+    <span class="chip" data-min="0">타이머없음</span>
+    <span class="chip" data-min="2">2분</span>
+    <span class="chip on" data-min="3">3분</span>
+    <span class="chip" data-min="5">5분</span>
+    <span class="chip" data-min="10">10분</span>
+    <span class="clock" id="clock">3:00</span>
+    <button id="tStart">시작</button>
+    <button id="tPause">일시정지</button>
+    <button id="tReset">초기화</button>
+  </div>
+
+  <div class="rule">📌 주제는 모둠이 함께 정하고, 문제 풀이와 글쓰기는 <b>각자</b> 해요. 막히면 <b>친구와 의논</b>!</div>
+
+  <!-- ===== STEP 1 ===== -->
+  <section class="card panel active" id="p1">
+    <h2>1단계 · 글의 문단 구성</h2>
+    <p class="hint">아래는 'MBTI'를 설명하는 글의 <b>문단들</b>이 뒤섞인 거예요. <b>중간②는 이미 채워져</b> 있어요. 나머지 문단을 <b>처음·중간①·중간③·끝</b>에 탭해서 배치하고, 각 문단의 <b>표지어 ( ___ ) 빈칸</b>을 채우세요. 막히면 친구와 의논!</p>
+    <div class="s1grid">
+      <div>
+        <div class="status" style="margin-bottom:6px">📦 문단 카드 (뒤섞임)</div>
+        <div class="pool" id="pool"></div>
+      </div>
+      <div>
+        <div class="status" style="margin-bottom:6px">📑 글의 구조 (처음 1 · 중간 3 · 끝 1)</div>
+        <div class="slots" id="slots">
+          <div class="slotrow"><div class="slotlabel">처음</div><div class="dropzone" data-slot="0"></div></div>
+          <div class="slotrow"><div class="slotlabel">중간①</div><div class="dropzone" data-slot="1"></div></div>
+          <div class="slotrow"><div class="slotlabel" style="background:var(--gold)">중간②<br><span style="font-size:.7rem">고정</span></div><div class="dropzone fixed" data-slot="2"></div></div>
+          <div class="slotrow"><div class="slotlabel">중간③</div><div class="dropzone" data-slot="3"></div></div>
+          <div class="slotrow"><div class="slotlabel">끝</div><div class="dropzone" data-slot="4"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="cuepool-wrap" id="cuePoolWrap" style="display:none">
+      <div class="status" style="margin-bottom:6px">🏷️ 표지어 보기 — 빈칸을 탭한 뒤 표지어를 탭하세요 (하나는 함정!)</div>
+      <div class="cuepool" id="cuePool"></div>
+      <div class="cuestatus" id="cueStatus">채운 표지어: <b id="cueCount">0 / 5</b></div>
+    </div>
+    <div class="btnrow">
+      <button class="btn primary" id="check1" disabled>확인하기</button>
+      <button class="btn gold" id="reset1">다시하기</button>
+      <span class="status" id="st1">0 / 5 배치됨 · 문단을 탭한 뒤 자리를 탭하세요</span>
+    </div>
+  </section>
+
+  <!-- ===== STEP 2 ===== -->
+  <section class="card panel" id="p2">
+    <h2>2단계 · 표지어 찾기</h2>
+    <p class="hint">노란 표지어를 클릭해 그 문장에 쓰인 <b>설명 방법</b>을 맞혀 보세요. 헷갈리면 친구와 의논해도 좋아요!</p>
+    <div class="readtext" id="readtext"></div>
+    <div class="counter">
+      <div class="b"><div class="n" id="cHit">0</div><div class="l">맞힘</div></div>
+      <div class="b"><div class="n" id="cAll">0</div><div class="l">전체</div></div>
+    </div>
+
+    <div class="aibox" id="aibox2" style="display:none;border-color:var(--accent2);background:linear-gradient(135deg,#fff,#e9f4ee)">
+      <div class="ait" style="color:var(--accent2)">🎉 표지어를 모두 찾았어요!</div>
+      <p class="hint" style="margin-bottom:8px">설명 방법마다 자주 쓰는 표지어가 있다는 걸 알았죠? 이제 직접 설명문을 써 볼 차례예요.</p>
+      <div class="verifyrow">
+        <button class="btn green" id="toStep3">3단계로 가기 →</button>
+      </div>
+    </div>
+
+    <div class="btnrow">
+      <button class="btn gold" id="reset2">다시하기</button>
+    </div>
+  </section>
+
+  <!-- ===== STEP 3 ===== -->
+  <section class="card panel" id="p3">
+    <h2>3단계 · 문단 쓰기</h2>
+    <p class="hint">① <b>우리 모둠 주제</b>를 하나 고르고 ② <b>처음·중간·끝을 누가 쓸지</b> 역할을 정하세요. ③ <b>선생님께 제출</b>한 뒤, 각자 맡은 부분을 <b>설명 방법을 한 가지 이상</b> 넣어 한 문단으로 쓰세요.</p>
+    <div class="topicpick">
+      <div class="topiclabel">🎯 우리 모둠 주제 고르기</div>
+      <div class="topicgrid" id="topicGrid">
+        <button class="topicbtn" data-topic="애완동물 키우기">🐶 애완동물 키우기</button>
+        <button class="topicbtn" data-topic="라면 끓이기">🍜 라면 끓이기</button>
+        <button class="topicbtn" data-topic="친구와 존중하며 모둠 활동하기">🤝 친구와 존중하며 모둠 활동하기</button>
+        <button class="topicbtn" data-topic="체육대회 단체 종목 잘하기">🏃 체육대회 단체 종목 잘하기</button>
+        <button class="topicbtn" data-topic="학교 폭력 발생 시 대처방법">🛡️ 학교 폭력 발생 시 대처방법</button>
+        <button class="topicbtn" data-topic="태블릿 PC 활용 수업 시 주의할 점">💻 태블릿 PC 활용 수업 시 주의할 점</button>
+      </div>
+    </div>
+    <div class="rule" style="background:#eef6f1;border-color:var(--accent2);color:var(--accent2)" id="topic">주제를 먼저 골라 주세요 ☝️</div>
+
+    <!-- 역할 분담 -->
+    <div class="rolebox" id="roleBox">
+      <div class="topiclabel">🧑‍🤝‍🧑 역할 정하기 (처음·중간·끝을 누가 쓸까?)</div>
+      <div class="rolegrid2">
+        <div class="rr2"><label>모둠 이름</label><input class="ti" id="teamName3" placeholder="예: 1모둠"></div>
+        <div class="rr2"><label>처음 쓰는 사람</label><input class="ti" id="roleStart" placeholder="이름"></div>
+        <div class="rr2"><label>중간 쓰는 사람</label><input class="ti" id="roleMid" placeholder="이름"></div>
+        <div class="rr2"><label>끝 쓰는 사람</label><input class="ti" id="roleEnd" placeholder="이름"></div>
+      </div>
+      <div class="btnrow">
+        <button class="btn gold" id="submitTeacher">📨 선생님께 주제·역할 제출</button>
+        <span class="status" id="submitMsg"></span>
+      </div>
+    </div>
+
+    <textarea id="essay" rows="6" placeholder="주제를 고른 뒤, 내가 맡은 부분(처음/중간/끝)을 한 문단으로 쓰세요…" disabled></textarea>
+    <div class="btnrow">
+      <button class="btn green" id="toFinish">다 썼어요! 마무리로 →</button>
+      <span class="status" id="st3"></span>
+    </div>
+  </section>
+
+  <!-- ===== STEP 4 마무리 ===== -->
+  <section class="card panel" id="p4">
+    <h2>4단계 · 마무리</h2>
+    <p class="hint">내가 쓴 설명문을 <b>패들렛</b>에 올리고, 친구들과 서로 확인할 차례예요.</p>
+
+    <!-- 패들렛 올리기 -->
+    <div class="finblock" style="border-color:var(--gold)">
+      <div class="fintitle" style="color:var(--gold)">🧷 패들렛에 내 글 올리기</div>
+      <p class="hint">아래 버튼으로 <b>내 설명문</b>을 복사해서, 선생님이 안내한 <b>패들렛</b> 우리 모둠 칸에 붙여넣으세요.</p>
+      <div class="btnrow">
+        <input class="ti" id="teamName2" style="max-width:220px;margin:0" placeholder="이름 / 모둠 (예: 김민준·1모둠)">
+        <button class="btn gold" id="copyPadlet2">📋 내 글 복사하기</button>
+        <span class="status" id="copyMsg2"></span>
+      </div>
+    </div>
+
+    <!-- 패들렛에서 할 일 -->
+    <div class="finblock" style="border-color:var(--accent2)">
+      <div class="fintitle" style="color:var(--accent2)">💬 패들렛에서 친구와 확인하기</div>
+      <p class="hint">패들렛 벽에 글이 다 모이면, 거기서 이렇게 해요.</p>
+      <ol class="presteps">
+        <li><b>친구 글에서 설명 방법 찾아 주기</b> — "여기 '예를 들어'는 예시!"처럼 댓글로</li>
+        <li><b>강점 댓글</b> — 잘된 점 한 가지를 존중하며 칭찬하기</li>
+        <li><b>돌아보기</b> — "글쓴이는 왜 설명 방법을 골라 쓸까?", "분류와 구분의 차이는?"을 패들렛에 한 줄 남기기</li>
+      </ol>
+    </div>
+
+    <div class="rule" style="margin-top:16px">🎉 수고했어요! 이제 패들렛으로 가서 친구들과 나눠요.</div>
+  </section>
+
+  <!-- ===== 활동 기록 요약 ===== -->
+  <section class="card">
+    <h2>📋 우리 모둠 활동 기록</h2>
+    <p class="hint">활동하면서 입력한 내용이 자동으로 모여요. 우리 모둠이 무엇을 의논했는지 한눈에 확인할 수 있어요. (패들렛에 올리는 건 4단계 마무리에서 해요.)</p>
+    <div class="btnrow">
+      <button class="btn green" id="refreshLog">기록 새로고침</button>
+    </div>
+    <div id="logCard" class="logcard">아직 활동 기록이 없어요. 1·2·3단계를 진행해 보세요!</div>
+  </section>
+
+  <footer>
+    설명 방법 8가지: 정의 · 예시 · 비교 · 대조 · 분류(묶기) · 분석 · 구분(나누기) · 인과 |
+    IB 핵심개념 <b>소통(Communication)</b> · 관련개념 <b>구조(Structure)</b><br>
+    출처: 교육부 국어과 교육과정 / IBO MYP Language &amp; Literature Guide
+  </footer>
+</div>
+
+<!-- modal -->
+<div class="modal" id="modal">
+  <div class="inner">
+    <h3 id="modalQ">이 표지어는 어떤 설명 방법일까요?</h3>
+    <div class="choices" id="choices"></div>
+    <button class="btn gold" onclick="closeModal()">닫기</button>
+  </div>
+</div>
+
+<script>
+/* ---------- 데이터 ---------- */
+// 1단계: 글의 문단 구성 (MBTI). order=정답 자리(0처음 1중간 2중간 3중간 4끝)
+// text의 {} 자리에 구조 표지어(cue)를 끌어다 채운다. posName=구조상 위치
+const FRAGS = [
+  {id:'p0', order:0, posName:'처음', cue:'먼저',
+   text:'( {} ), MBTI란 무엇일까? MBTI란 사람의 성격을 네 가지 기준에 따라 알파벳으로 나타낸 성격 유형 검사다.'},
+  {id:'p1', order:1, posName:'중간', cue:'첫째',
+   text:'( {} ), MBTI는 네 가지 지표로 나뉜다. 에너지 방향(E/I), 인식 방식(S/N), 판단 방식(T/F), 생활 양식(J/P)이라는 기준에 따라 성격을 구분한다.'},
+  {id:'p2', order:2, posName:'중간', cue:'예를 들어',
+   text:'( {} ) 같은 상황에서도 E는 사람들과 어울리며 힘을 얻는 반면, I는 혼자만의 시간에서 힘을 얻는다. 둘은 에너지를 채우는 방식이 서로 정반대다.'},
+  {id:'p3', order:3, posName:'중간', cue:'또한',
+   text:'( {} ) 이렇게 나뉜 지표를 조합하면 ENFP, ISTJ 같은 16가지 유형이 만들어지는데, 이들은 다시 분석가·외교관·관리자·탐험가라는 네 묶음으로 분류된다.'},
+  {id:'p4', order:4, posName:'끝', cue:'이처럼',
+   text:'( {} ) MBTI가 유행하는 까닭은 복잡한 나를 간단한 알파벳으로 설명해 주기 때문이다. 다만 사람을 16가지로만 가두지 않도록 참고 자료로 활용하는 태도가 필요하다.'},
+];
+// 표지어 보기(섞어서 제공). 정답 5개 + 헷갈리는 오답 1개
+const CUES = ['먼저','첫째','예를 들어','또한','이처럼','왜냐하면'];
+
+// 2단계: 표지어 + 설명방법 (BTS 지문). 8가지 골고루
+const READ = [
+  {pre:'BTS는 일곱 명의 멤버로 이루어진 그룹', mark:'이다', meth:'정의', post:'. '},
+  {pre:'멤버는 랩 라인과 보컬 라인으로 ', mark:'나눌 수 있다', meth:'구분', post:'. '},
+  {pre:'', mark:'예를 들어', meth:'예시', post:' 정국은 메인 보컬을 맡고 있다. '},
+  {pre:'BTS의 노래는 ', mark:'마치', meth:'비교', post:' 한 편의 이야기처럼 이어진다. '},
+  {pre:'데뷔 초에는 주목받지 못했지만 꾸준히 활동한 ', mark:'덕분에', meth:'인과', post:' 세계적인 그룹이 되었다.'}
+];
+const METHODS = ['정의','예시','비교','대조','분류','분석','구분','인과'];
+
+/* ---------- 단계 완료 표시용 ---------- */
+const score={s1:false,s2:false,s3:false};
+
+/* ---------- 탭 전환 ---------- */
+const panels = {1:document.getElementById('p1'),2:document.getElementById('p2'),3:document.getElementById('p3'),4:document.getElementById('p4')};
+const steps = document.querySelectorAll('.stepper .s');
+function goStep(n){
+  Object.values(panels).forEach(p=>p.classList.remove('active'));
+  panels[n].classList.add('active');
+  steps.forEach(s=>{s.classList.toggle('active', s.dataset.go==n);});
+}
+// 단계 잠금: 앞 단계를 끝내야 다음으로 갈 수 있음
+function canGo(n){
+  if(n<=1) return true;
+  if(n===2) return score.s1;
+  if(n===3) return score.s1 && score.s2;
+  if(n===4) return score.s1 && score.s2 && score.s3;
+  return false;
+}
+steps.forEach(s=>s.addEventListener('click',()=>{
+  const n=+s.dataset.go;
+  if(canGo(n)){ goStep(n); }
+  else {
+    const cur=[...steps].findIndex(x=>x.classList.contains('active'))+1;
+    alert('아직 '+n+'단계로 갈 수 없어요. 먼저 '+(n-1)+'단계를 끝내고 "확인하기"를 통과하세요!');
+  }
+}));
+
+/* ---------- 타이머 ---------- */
+let tSec=180, tLeft=180, tInt=null;
+const clock=document.getElementById('clock');
+function fmt(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+function draw(){clock.textContent=tSec===0?'∞':fmt(tLeft);}
+document.querySelectorAll('.chip[data-min]').forEach(c=>c.addEventListener('click',()=>{
+  document.querySelectorAll('.chip[data-min]').forEach(x=>x.classList.remove('on'));
+  c.classList.add('on');
+  tSec=+c.dataset.min*60; tLeft=tSec; clearInterval(tInt); draw();
+}));
+document.getElementById('tStart').onclick=()=>{
+  if(tSec===0)return; clearInterval(tInt);
+  tInt=setInterval(()=>{ if(tLeft<=0){clearInterval(tInt);showModalEnd();return;} tLeft--; draw(); },1000);
+};
+document.getElementById('tPause').onclick=()=>clearInterval(tInt);
+document.getElementById('tReset').onclick=()=>{clearInterval(tInt);tLeft=tSec;draw();};
+draw();
+function showModalEnd(){alert('⏰ 시간 종료! 활동을 마무리하세요.');}
+
+/* ---------- STEP1 탭/탭 방식 (문단 배치 + 표지어 빈칸 채우기) ---------- */
+const pool=document.getElementById('pool');
+const zones=document.querySelectorAll('#slots .dropzone');
+let placed=0;
+let cueFilled={};        // fragId -> 채워진 표지어
+let selectedFrag=null;   // 현재 선택된 문단 카드 엘리먼트
+let selectedBlankId=null;// 현재 선택된 빈칸의 fragId
+
+function fragHTML(f){
+  const blank=`<span class="cueblank" data-blankfor="${f.id}">____</span>`;
+  return f.text.replace('{}', blank);
+}
+function renderPool(){
+  pool.innerHTML='';
+  // order===2(중간②)는 풀에 내보내지 않고 고정 슬롯에 박아둔다
+  [...FRAGS].filter(f=>f.order!==2).sort(()=>Math.random()-.5).forEach(f=>{
+    pool.appendChild(makeFrag(f));
+  });
+  // 고정 슬롯에 중간② 문단 배치(움직일 수 없음, 표지어도 미리 채움)
+  const fixedZone=document.querySelector('.dropzone.fixed');
+  fixedZone.innerHTML='';
+  const fixed=FRAGS.find(f=>f.order===2);
+  const fel=makeFrag(fixed, true);
+  fixedZone.appendChild(fel);
+  // 고정 문단의 표지어 빈칸을 정답으로 미리 채움
+  const fb=fel.querySelector('.cueblank');
+  if(fb){ fb.textContent=fixed.cue; fb.classList.add('filled'); }
+  cueFilled[fixed.id]=fixed.cue;
+  bindBlanks();
+}
+function makeFrag(f, isFixed){
+  const d=document.createElement('div');
+  d.className='frag'+(isFixed?' fixedfrag':''); d.dataset.id=f.id; d.dataset.order=f.order;
+  d.innerHTML=fragHTML(f);
+  if(!isFixed){
+    d.addEventListener('click',e=>{
+      if(e.target.classList.contains('cueblank')) return; // 빈칸은 따로
+      selectFrag(d);  // stopPropagation 하지 않음 → 슬롯 핸들러도 함께 처리
+    });
+  }
+  return d;
+}
+function renderCuePool(){
+  const cp=document.getElementById('cuePool'); cp.innerHTML='';
+  [...CUES].sort(()=>Math.random()-.5).forEach(cue=>{
+    const c=document.createElement('div');
+    c.className='cuechip'; c.dataset.cue=cue; c.textContent=cue;
+    c.addEventListener('click',()=>placeCue(cue));
+    cp.appendChild(c);
+  });
+}
+// --- 문단 선택 ---
+function selectFrag(el){
+  if(selectedFrag===el){ el.classList.remove('sel'); selectedFrag=null; return; }
+  if(selectedFrag) selectedFrag.classList.remove('sel');
+  selectedFrag=el; el.classList.add('sel');
+  document.getElementById('st1').innerHTML='<span class="status">👆 옮길 자리를 탭하세요. (문단이 있으면 서로 자리를 바꿔요)</span>';
+}
+// --- 슬롯 클릭: 배치/교환 ---
+zones.forEach(z=>{
+  if(z.classList.contains('fixed')) return; // 고정 슬롯은 클릭 무시
+  z.addEventListener('click',(e)=>{
+    if(e.target.classList.contains('cueblank')) return; // 빈칸 탭은 따로
+    const here=z.firstElementChild; // 이 슬롯의 문단(없으면 null)
+    // 선택된 게 없으면: 이 슬롯 문단을 선택
+    if(!selectedFrag){
+      if(here) selectFrag(here);
+      return;
+    }
+    // 선택된 문단이 바로 이 슬롯이면: 선택 해제
+    if(selectedFrag===here){
+      selectedFrag.classList.remove('sel'); selectedFrag=null; return;
+    }
+    // 이동/교환: 선택 문단의 원래 부모로 이 슬롯 문단을 보냄
+    const fromParent=selectedFrag.parentElement;
+    if(here && !here.classList.contains('fixedfrag')){
+      fromParent.appendChild(here);
+    }
+    z.appendChild(selectedFrag);
+    selectedFrag.classList.remove('sel'); selectedFrag=null;
+    updateP1();
+  });
+});
+// --- 빈칸 선택 / 표지어 채우기 ---
+function bindBlanks(){
+  document.querySelectorAll('.cueblank').forEach(b=>{
+    b.addEventListener('click',e=>{
+      e.stopPropagation();
+      const frag=b.closest('.frag');
+      if(frag && frag.classList.contains('fixedfrag')) return; // 고정 문단은 표지어 수정 불가
+      const inSlot=frag && frag.parentElement && frag.parentElement.classList.contains('dropzone');
+      if(!inSlot){ alert('먼저 이 문단을 처음·중간·끝 자리에 놓은 뒤에 표지어를 채워요!'); return; }
+      // 이미 채워진 빈칸을 탭하면 비우기
+      if(b.classList.contains('filled')){
+        delete cueFilled[b.dataset.blankfor];
+        b.textContent='____'; b.classList.remove('filled','trap');
+        refreshCueChips(); updateCue(); return;
+      }
+      // 선택 토글
+      document.querySelectorAll('.cueblank').forEach(x=>x.classList.remove('sel'));
+      if(selectedBlankId===b.dataset.blankfor){ selectedBlankId=null; return; }
+      selectedBlankId=b.dataset.blankfor; b.classList.add('sel');
+    });
+  });
+}
+function placeCue(cue){
+  if(!selectedBlankId){ alert('먼저 채울 빈칸 ( ___ )을 탭해서 고르세요!'); return; }
+  const b=document.querySelector(`.cueblank[data-blankfor="${selectedBlankId}"]`);
+  if(!b) return;
+  b.textContent=cue; b.classList.add('filled'); b.classList.remove('sel');
+  cueFilled[selectedBlankId]=cue; selectedBlankId=null;
+  refreshCueChips(); updateCue();
+}
+function refreshCueChips(){
+  const used=Object.values(cueFilled);
+  document.querySelectorAll('.cuechip').forEach(c=>{
+    c.classList.toggle('used', used.includes(c.dataset.cue));
+  });
+}
+function updateCue(){
+  document.getElementById('cueCount').textContent=Object.keys(cueFilled).length+' / 5';
+}
+renderPool(); renderCuePool(); refreshCueChips(); updateCue();
+function updateP1(){
+  placed=[...zones].filter(z=>z.children.length).length;
+  document.getElementById('st1').textContent=placed+' / 5 배치됨'+(placed<5?' · 문단을 탭한 뒤 자리를 탭하세요':' · 이제 빈칸을 탭하고 표지어를 탭하세요!');
+  document.getElementById('cuePoolWrap').style.display = placed===5 ? 'block':'none';
+  document.getElementById('check1').disabled=placed<5;
+}
+document.getElementById('check1').onclick=()=>{
+  // 위치 채점: 맞은 칸 수 세기
+  let posCount=0;
+  zones.forEach(z=>{ if(z.firstElementChild && +z.firstElementChild.dataset.order===+z.dataset.slot) posCount++; });
+  const posOK = posCount===zones.length;
+  // 표지어 채점: 모두 채웠는지 + 맞은 개수
+  const allFilled=Object.keys(cueFilled).length===FRAGS.length;
+  let cueCount=0;
+  FRAGS.forEach(f=>{ if(cueFilled[f.id]===f.cue) cueCount++; });
+  const cueOK = allFilled && cueCount===FRAGS.length;
+
+  if(posOK && cueOK){
+    document.getElementById('st1').innerHTML='<span class="ok">✅ 정확해요! 문단 자리도, 표지어도 모두 맞혔어요. 2단계로 넘어가요!</span>';
+    steps[0].classList.add('done'); score.s1=true; renderLog(); setTimeout(()=>goStep(2),1300);
+  } else if(!allFilled){
+    document.getElementById('st1').innerHTML='<span class="no">🏷️ 아직 비어 있는 표지어 빈칸이 있어요. ('+Object.keys(cueFilled).length+'/5) 모두 채운 뒤 다시 확인하세요.</span>';
+  } else {
+    document.getElementById('st1').innerHTML='<span class="no">🤔 문단 자리 <b>'+posCount+'/5</b> 맞음, 표지어 <b>'+cueCount+'/5</b> 맞음. 처음부터 다시 할 필요 없어요 — <b>옮길 문단을 탭하고 바꿀 자리를 탭</b>하면 그 자리에서 고쳐져요. 친구와 논의해 고친 뒤 다시 확인!</span>';
+  }
+};
+document.getElementById('reset1').onclick=()=>{
+  zones.forEach(z=>{
+    if(z.classList.contains('fixed')) return;
+    while(z.children.length) pool.appendChild(z.firstElementChild);
+  });
+  cueFilled={}; selectedFrag=null; selectedBlankId=null;
+  renderPool(); renderCuePool(); updateP1(); updateCue();
+  document.getElementById('st1').textContent='문단을 탭한 뒤 빈 자리를 탭하세요';
+};
+
+/* ---------- STEP2 표지어 ---------- */
+const readEl=document.getElementById('readtext');
+let total=0, hit=0, userAnswers=[];
+function renderRead(){
+  readEl.innerHTML=''; total=0; hit=0; userAnswers=[];
+  READ.forEach((seg,i)=>{
+    readEl.append(document.createTextNode(seg.pre));
+    const m=document.createElement('span');
+    m.className='marker'; m.textContent=seg.mark; m.dataset.i=i;
+    m.onclick=()=>openModal(i,m);
+    readEl.appendChild(m); total++;
+    readEl.append(document.createTextNode(seg.post));
+  });
+  document.getElementById('cAll').textContent=total;
+  document.getElementById('cHit').textContent=0;
+}
+renderRead();
+let curMarker=null,curIdx=null;
+function openModal(i,el){
+  if(el.classList.contains('solved'))return;
+  curIdx=i;curMarker=el;
+  document.getElementById('choices').innerHTML='';
+  METHODS.forEach(meth=>{
+    const b=document.createElement('button'); b.textContent=meth;
+    b.onclick=()=>pick(meth); document.getElementById('choices').appendChild(b);
+  });
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal(){document.getElementById('modal').classList.remove('show');}
+function pick(meth){
+  const correct=READ[curIdx].meth;
+  if(meth===correct){
+    curMarker.classList.add('solved'); curMarker.textContent=READ[curIdx].mark+'('+meth+')';
+    userAnswers[curIdx]=meth; hit++; document.getElementById('cHit').textContent=hit;
+    closeModal();
+    if(hit===total){
+      score.s2=true; steps[1].classList.add('done');
+      document.getElementById('aibox2').style.display='block';
+      document.getElementById('aibox2').scrollIntoView({behavior:'smooth'});
+      renderLog();
+    }
+  } else { alert('🤔 다시 생각! 친구와 의논해 보세요.'); }
+}
+document.getElementById('reset2').onclick=()=>{renderRead();document.getElementById('aibox2').style.display='none';};
+document.getElementById('toStep3').onclick=()=>{ goStep(3); window.scrollTo({top:0,behavior:'smooth'}); };
+
+/* ---------- STEP3 주제 선택 ---------- */
+let chosenTopic='';
+document.querySelectorAll('.topicbtn').forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll('.topicbtn').forEach(x=>x.classList.remove('sel'));
+    b.classList.add('sel');
+    chosenTopic=b.dataset.topic;
+    document.getElementById('topic').textContent='주제: "'+chosenTopic+'" — 설명 방법을 골라 한 문단 쓰기';
+    const ta=document.getElementById('essay');
+    ta.disabled=false; ta.placeholder=chosenTopic+'에 대해, 내가 맡은 부분을 한 문단으로 쓰세요…'; ta.focus();
+  };
+});
+
+/* ---------- 선생님 구글 시트로 전송 (Apps Script) ---------- */
+// ▼▼▼ 선생님: 구글시트 Apps Script 웹앱 주소를 아래에 붙여넣으면 작동합니다 ▼▼▼
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz2Hp2amHRmW9cNfqG68NKLyaKUwWcAecFNs_XvOEMbALDIM0Aauuzwl_RdNuCRw4z_Rw/exec';  // 구글시트 Apps Script 웹앱
+// ▲▲▲ 여기까지 (배포 방법은 선생님 안내문 참고) ▲▲▲
+document.getElementById('submitTeacher').onclick=async()=>{
+  const msg=document.getElementById('submitMsg');
+  if(!chosenTopic){ msg.innerHTML='<span class="no">먼저 위에서 주제를 골라 주세요!</span>'; return; }
+  const team=document.getElementById('teamName3').value.trim();
+  const s=document.getElementById('roleStart').value.trim();
+  const m=document.getElementById('roleMid').value.trim();
+  const e=document.getElementById('roleEnd').value.trim();
+  if(!team || !s || !m || !e){ msg.innerHTML='<span class="no">모둠 이름과 처음·중간·끝 담당을 모두 적어 주세요!</span>'; return; }
+  if(!SHEET_URL){ msg.innerHTML='<span class="no">⚠️ 아직 구글 시트가 연결되지 않았어요.</span>'; return; }
+
+  msg.innerHTML='<span class="status">⏳ 선생님께 보내는 중…</span>';
+
+  // 데이터를 URL 쿼리로 붙여 GET 방식으로 전송 (no-cors POST보다 환경 제약에 강함)
+  const params=new URLSearchParams({
+    team:team, topic:chosenTopic, start:s, mid:m, end:e,
+    time:new Date().toLocaleString('ko-KR')
+  });
+  const url=SHEET_URL+'?'+params.toString();
+
+  // 방법1: fetch GET (no-cors) — 조용히 전송
+  let sent=false;
+  try{
+    await fetch(url, {method:'GET', mode:'no-cors'});
+    sent=true;
+  }catch(err){ sent=false; }
+
+  // 방법2: fetch가 막히면 이미지 비콘으로 재시도
+  if(!sent){
+    try{
+      await new Promise((resolve,reject)=>{
+        const img=new Image();
+        img.onload=()=>resolve();
+        img.onerror=()=>resolve(); // Apps Script는 이미지가 아니어도 요청은 도달함
+        img.src=url;
+        setTimeout(resolve, 1500);
+      });
+      sent=true;
+    }catch(err){ sent=false; }
+  }
+
+  if(sent){
+    msg.innerHTML='<span class="ok">✅ 제출했어요! (주제: '+chosenTopic+') 선생님 시트를 확인해 주세요.</span>';
+    document.getElementById('submitTeacher').disabled=true;
+  }else{
+    msg.innerHTML='<span class="no">전송이 안 됐어요. 같은 화면이 계속되면, 이 페이지를 실제 인터넷 주소(깃허브 페이지 등)에서 열어야 작동해요.</span>';
+  }
+};
+
+/* ---------- 마무리(4단계) ---------- */
+document.getElementById('toFinish').onclick=()=>{
+  if(!chosenTopic){document.getElementById('st3').innerHTML='<span class="no">먼저 주제를 골라 주세요!</span>';return;}
+  const essay=document.getElementById('essay').value.trim();
+  if(essay.length<15){document.getElementById('st3').innerHTML='<span class="no">한 문단을 더 써 주세요!</span>';return;}
+  score.s3=true; steps[2].classList.add('done'); renderLog();
+  goStep(4); window.scrollTo({top:0,behavior:'smooth'});
+};
+
+/* ---------- 활동 기록 요약 ---------- */
+function buildLog(){
+  const team=(document.getElementById('teamName2')?.value.trim())||'우리 모둠';
+  const essay=document.getElementById('essay').value.trim();
+
+  let html=`<div class="logteam">📌 ${team}</div>`;
+  // 1단계
+  html+=`<div class="logitem"><span class="logstep">①문단 구성</span>`;
+  html+= score.s1 ? `<span class="ok">완료 ✅</span>` : `<span class="status">진행 중</span>`;
+  html+=`</div>`;
+  // 2단계
+  html+=`<div class="logitem"><span class="logstep">②표지어 찾기</span>`;
+  html+= (hit===total&&total>0) ? `<span class="ok">표지어 ${hit}/${total} 완료</span>` : `<span class="status">표지어 ${hit}/${total}</span>`;
+  html+=`</div>`;
+  // 3단계
+  html+=`<div class="logitem"><span class="logstep">③문단 쓰기</span>`;
+  html+= (typeof chosenTopic!=='undefined' && chosenTopic) ? `<span class="ok">주제: ${esc(chosenTopic)}</span>` : `<span class="status">주제 미선택</span>`;
+  html+= essay ? `<div class="logtext">쓴 문단: ${esc(essay)}</div>` : `<div class="logtext status">— 미작성</div>`;
+  html+=`</div>`;
+  return html;
+}
+function esc(s){return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+function renderLog(){ document.getElementById('logCard').innerHTML=buildLog(); }
+document.getElementById('refreshLog').onclick=renderLog;
+// 주요 입력이 끝날 때 자동 갱신
+['essay'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('blur',renderLog);});
+
+/* ---------- 패들렛 복사용 평문 (결과물만) ---------- */
+function buildPadletText(){
+  const team=(document.getElementById('teamName2')?.value.trim())||'우리 모둠';
+  const essay=document.getElementById('essay').value.trim();
+  const topic=(typeof chosenTopic!=='undefined'&&chosenTopic)?chosenTopic:'';
+  let t=`🟢 ${team} — 설명문\n`;
+  t+=`\n[주제] ${topic||'(미선택)'}\n`;
+  t+=`\n${essay||'(아직 안 씀)'}`;
+  return t.trim();
+}
+document.getElementById('copyPadlet2').onclick=async()=>{
+  const msg=document.getElementById('copyMsg2');
+  const essay=document.getElementById('essay').value.trim();
+  if(essay.length<15){ msg.innerHTML='<span class="no">먼저 3단계에서 설명문을 써 주세요!</span>'; return; }
+  const text=buildPadletText();
+  try{
+    await navigator.clipboard.writeText(text);
+    msg.innerHTML='<span class="ok">✅ 복사됐어요! 패들렛에 붙여넣기 하세요.</span>';
+  }catch(e){
+    const ta=document.createElement('textarea');
+    ta.value=text; ta.style.width='100%'; ta.style.height='140px'; ta.style.marginTop='10px'; ta.className='ti';
+    msg.innerHTML='<span class="no">아래 글을 길게 눌러 전체 선택 → 복사하세요.</span>';
+    msg.parentElement.parentElement.appendChild(ta); ta.select();
+  }
+};
+</script>
+</body>
+</html>
